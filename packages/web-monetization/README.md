@@ -5,7 +5,7 @@ This is an *Observable* wrapper for the [Web-Monetization API](https://webmoneti
 Simply include the little script on your page:
 
 ```html
-<script src="https://unpkg.com/@onephrase/observable-webmonetization/dist/main.js"></script>
+<script src="https://unpkg.com/@webqit/observable-webmonetization/dist/main.js"></script>
 ```
 ```js
 let monetization = OP.WebMonetization.init(payment_pointer);
@@ -79,8 +79,8 @@ Using the Observer API above, we could programmatically keep monentized sections
       <h2>Ads</h2>
     </div>
 
-    <script src="https://unpkg.com/@onephrase/observable-webmonetization/dist/main.js"></script>
-    <script src="https://unpkg.com/@web-native-js/observer/dist/main.js"></script>
+    <script src="https://unpkg.com/@webqit/observable-webmonetization/dist/main.js"></script>
+    <script src="https://unpkg.com/@webqit/observer/dist/main.js"></script>
     <script>
     
         const WebMonetization = window.OP.WebMonetization;
@@ -138,8 +138,8 @@ Life gets a lot easier using Observables together with the [Scoped JS](https://g
       </script>
     </div>
 
-    <script src="https://unpkg.com/@onephrase/observable-webmonetization/dist/main.js"></script>
-    <script src="https://unpkg.com/@web-native-js/chtml/dist/main.js"></script>
+    <script src="https://unpkg.com/@webqit/observable-webmonetization/dist/main.js"></script>
+    <script src="https://unpkg.com/@webqit/chtml/dist/main.js"></script>
     <script>
     
         const WebMonetization = window.OP.WebMonetization;
@@ -206,8 +206,8 @@ Below, we've introduced a clickable anchor tag that toggles the current `monetiz
       </script>
     </div>
 
-    <script src="https://unpkg.com/@onephrase/observable-webmonetization/dist/main.js"></script>
-    <script src="https://unpkg.com/@web-native-js/chtml/dist/main.js"></script>
+    <script src="https://unpkg.com/@webqit/observable-webmonetization/dist/main.js"></script>
+    <script src="https://unpkg.com/@webqit/chtml/dist/main.js"></script>
     <script>
     
         const WebMonetization = window.OP.WebMonetization;

@@ -2,7 +2,7 @@
 /**
  * @imports
  */
-import Observer from '@web-native-js/observer';
+import Observer from '@webqit/observer';
 import InputBase from './InputBase.js';
 
 /**

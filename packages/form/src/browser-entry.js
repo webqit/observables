@@ -2,14 +2,9 @@
 /**
  * @imports
  */
+import { build } from '../../../src/build.js';
 import * as Form from './index.js';
 
 // As globals
-if (!window.OnePhrase) {
-	window.OnePhrase = {};
-}
-if (!window.OP) {
-	window.OP = {};
-}
-window.OnePhrase.Form = Form;
-window.OP.Form = Form;
+window.WQ = window.WQ || {};
+window.WQ.Obsv = build('Form', Form);

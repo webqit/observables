@@ -2,183 +2,357 @@
 /**
  * @imports
  */
-import Observer from '@web-native-js/observer';
-import _isArray from '@onephrase/util/js/isArray.js';
-import _isEmpty from '@onephrase/util/js/isEmpty.js';
-import _isFunction from '@onephrase/util/js/isFunction.js';
-import _isClass from '@onephrase/util/js/isClass.js';
-import _arrFirst from '@onephrase/util/arr/first.js';
-import _arrLast from '@onephrase/util/arr/last.js';
-import _following from '@onephrase/util/arr/following.js';
-import _preceding from '@onephrase/util/arr/preceding.js';
-import _each from '@onephrase/util/obj/each.js';
-import CollectionBase from './CollectionBase.js';
-import Item from './Item.js';
+import Observer from '@webqit/observer';
+import _isArray from '@webqit/util/js/isArray.js';
+import _isObject from '@webqit/util/js/isObject.js';
+import _isNumeric from '@webqit/util/js/isNumeric.js';
+import _arrFirst from '@webqit/util/arr/first.js';
+import _arrLast from '@webqit/util/arr/last.js';
+import _arrRand from '@webqit/util/arr/rand.js';
+import _following from '@webqit/util/arr/following.js';
+import _preceding from '@webqit/util/arr/preceding.js';
+import _between from '@webqit/util/arr/between.js';
+import _min from '@webqit/util/arr/min.js';
+import _max from '@webqit/util/arr/max.js';
+import _mid from '@webqit/util/arr/mid.js';
+import _intersect from '@webqit/util/arr/intersect.js';
+import _difference from '@webqit/util/arr/difference.js';
 
 /**
  * ---------------------------
- * The List class
+ * The Collection class
  * ---------------------------
  */
 			
-export default class extends CollectionBase {
+export default class Collection {
 
 	/**
-	 * Constructs a new List instance.
-	 * Sub-views may also be listed.
+	 * Instantiates a new collection.
 	 *
-	 * @param array|object			items
-	 * @param object				params
+	 * @param array				items
+	 * @param object			params
 	 *
 	 * @return void
 	 */
-	constructor(items = {}, params = {}) {
-		if (!params.takeStats) {
-			params.takeStats = [];
+	constructor(items = [], params = {}) {
+		if (!_isArray(items)) {
+			throw new Error('"items" must be an array.');
 		}
-		if (!params.takeStats.includes('active')) {
-			params.takeStats.push('active');
+		if (!_isObject(params)) {
+			throw new Error('"params" must be an object.');
 		}
-		if (!params.takeStats.includes('activating')) {
-			params.takeStats.push('activating');
+		if (params.itemStates && !_isArray(params.itemStates)) {
+			throw new Error('"params.itemStates" must be an array.');
 		}
-		if (!params.takeStats.includes('deactivating')) {
-			params.takeStats.push('deactivating');
-		}
-		super({}, params);
-		Observer.observe(this, this.params.itemsOffset + '..activating', delta => {
-			if (delta.value) {
-				this.getItemsArray().forEach(item => {
-					if (item.active === true && !item.activating) {
-						item.setActiveState(false);
+		Observer.set(this, 'items', []);
+		Observer.set(this, 'state', {});
+		Observer.set(this, 'now', {});
+		Observer.set(this, 'prev', {});
+		this.params = params;
+		// ----------------
+		// Adder/Remover
+		// ----------------
+		const stateAdd = (name, key) => {
+			if (this.params.itemStates && !this.params.itemStates.includes(name)) {
+				return;
+			}
+			if (!this.state[name]) {
+				var _array = new _Array();
+				// The "_source" object should not be auto observed
+				Object.defineProperty(_array, '_source', {value: this.items, enumerable: false});
+				Observer.set(this.state, name, _array);
+			}
+			if (!this.state[name].includes(key)) {
+				if (this._beforeSetState) {
+					this._beforeSetState(name, key);
+				}
+				Observer.proxy(this.state[name]).push(key);
+				Observer.set(this.now, name, key);
+				if (this._afterSetState) {
+					this._afterSetState(name, key);
+				}
+			}
+		};
+		const stateRemove = (name, key) => {
+			if ((this.state[name] || []).includes(key)) {
+				if (this._beforeUnsetState) {
+					this._beforeUnsetState(name, key);
+				}
+				var index = this.state[name].indexOf(key);
+				Observer.proxy(this.state[name]).splice(index, 1);
+				Observer.set(this.prev, name, key);
+				if (this._afterUnsetState) {
+					this._afterUnsetState(name, key);
+				}
+			}
+		};
+		// ----------------
+		// Observe all item entry/exit
+		// ----------------
+		Observer.intercept(this.items, ['set', 'del'], (e, recieved, next) => {
+			if (e.name === 'length') {
+				return next();
+			}
+			if (e.type === 'set') {
+				
+				if (!_isNumeric(e.name)) {
+					throw new Error('Named items cannot be set on a collection.');
+				}
+				if (!_isObject(e.value)) {
+					throw new Error('Only items of type object are allowed in a collection.');
+				}
+
+				// -------------
+				// Unpublish inactive states BEFORE/AFTER active states
+				// -------------
+
+				var activesStates = [], inactiveStates = [];
+				Object.keys(e.value).forEach(state => {
+					if (!this.params.boolishStateTest || e.value[state]) {
+						// Only now can we...
+						activesStates.push(state);
 					}
 				});
+				if (e.isUpdate) {
+					// -------------------
+					// Something like this.items.unshift() can scatter indexes,
+					// or a certain item can just be updated in-place
+					// Update state indexes
+					inactiveStates = _difference(Object.keys(e.oldValue), activesStates);
+				}
+
+				// -------------------
+				
+				if (this.params.onBadState !== 'clear_last') {
+					inactiveStates.forEach(state => {
+						stateRemove(state, e.name);
+					});
+				}
+				activesStates.forEach(state => {
+					stateAdd(state, e.name);
+				});
+				if (this.params.onBadState === 'clear_last') {
+					inactiveStates.forEach(state => {
+						stateRemove(state, e.name);
+					});
+				}
+
+				// -------------------
+				// Start watching new entry
+				// -------------------
+
+				Observer.intercept(e.value, ['set', 'del'], (e2, recieved, next) => {
+					var shouldAdd = this.params.boolishStateTest ? e2.value : e2.type === 'set';
+					var shouldRemove = this.params.boolishStateTest ? !e2.value : e2.type === 'del';
+					if (shouldAdd) {
+						stateAdd(e2.name, e.name);
+					} else if (shouldRemove) {
+						stateRemove(e2.name, e.name);
+					}
+					return next();
+				}, {
+					unique: 'replace'/* the current index is unique to this binding */,
+					tags: [this, 'state-change-interception'],
+				});
+				if (e.isUpdate) {
+					// -------------------
+					// Only unset if the item was discarded.
+					// this.items.unshift() would otherwise have relocated it.
+					// -------------------
+					if (!this.items.includes(e.oldValue)) {
+						Observer.unintercept(e.oldValue, ['set', 'del'], null, {tags: [this, 'state-change-interception']});
+					}
+				}
+
+			} else if (e.type === 'del') {
+				// -------------------
+				Observer.unintercept(e.oldValue, ['set', 'del'], null, {tags: [this, 'state-change-interception']});
+				// -------------------
+				Object.keys(e.oldValue || {}).forEach(state => {
+					stateRemove(state, e.name);
+				});
 			}
+			return next();
 		});
-		this.fill(items);
+		// Fill collection
+		this.push(...items);
 	}
 
 	/**
-	 * Advances the list's selectedness to the
-	 * first item.
-	 *
-	 * @return void}Event
+	 * -----------
+	 * Setters
+	 * -----------
 	 */
-	selectStart() {
-		var first, items = this.getItemsArray();
-		if (!_isEmpty(items) && (first = _arrFirst(items))) {
-			return first.setActiveState(true);
-		}
+	
+	/**
+	 * Returns all items in the collection in an observed proxy.
+	 *
+	 * @return Proxy
+	 */
+	proxy() {
+		return Observer.proxy(this.items);
 	}
 
 	/**
-	 * Advances the list's selectedness to the
-	 * last item.
+	 * Adds items to the collections.
 	 *
-	 * @return void}Event
+	 * @param array ...items
+	 *
+	 * @return void
 	 */
-	selectEnd() {
-		var last, items = this.getItemsArray();
-		if (!_isEmpty(items) && (last = _arrLast(items))) {
-			return last.setActiveState(true);
-		}
+	push(...items) {
+		Observer.proxy(this.items).push(...items);
+	}
+
+	/**
+	 * Adds items to the collections.
+	 *
+	 * @param array ...items
+	 *
+	 * @return void
+	 */
+	unshift(...items) {
+		Observer.proxy(this.items).unshift(...items);
+	}
+
+	/**
+	 * Removes items from the collections.
+	 *
+	 * @param array ...items
+	 *
+	 * @return void
+	 */
+	remove(...items) {
+		items.reduce((buffer, item, i) => {
+			var key = this.indexOf(item);
+			if (key === -1) {
+				return buffer;
+			}
+			// 
+			if (buffer.length) {
+				// Keep building buffer
+				if (parseInt(_arrLast(buffer)) + 1 === key) {
+					return buffer.concat(key);
+				}
+			} else if (i < items.length - 1) {
+				// We can still build
+				return [key];
+			}
+			// Empty buffer
+			Observer.proxy(this.items).splice(buffer[0], buffer.length);
+			return [];
+		}, []);
+	}
+
+	/**
+	 * -----------
+	 * Getters
+	 * -----------
+	 */
+	
+	/**
+	 * Returns the first item in the collections.
+	 *
+	 * @return any
+	 */
+	first() {
+		return _arrFirst(this.items);
 	}
 	
 	/**
-	 * Advances the list's selectedness to the
-	 * item preceding the current current.active.
-	 * Selects the last item if loopable and no current.active.
+	 * Returns the last item in the collections.
 	 *
-	 * @param bool|function	loop
-	 *
-	 * @return void}Event
+	 * @return any
 	 */
-	selectPrev(loop = false) {
-		var preceding, items = this.getItemsArray();
-		if (_isEmpty(items)) {
-			if (_isFunction(loop)) {
-				loop();
-			}
-			return;
-		}
-		if (this.current.active) {
-			preceding = _preceding(items, this.current.active, false/*length*/, loop);
-		} else if (loop && (!_isFunction(loop) || loop(0))) {
-			preceding = _arrLast(items);
-		}
-		if (preceding) {
-			return preceding.setActiveState(true);
-		}
-	}
-
-	/**
-	 * Advances the list's selectedness to the
-	 * item following the current current.active.
-	 * Selects the first item if loopable and no current.active.
-	 *
-	 * @param bool|function	loop
-	 *
-	 * @return void}Event
-	 */
-	selectNext(loop = false) {
-		var following, items = this.getItemsArray();
-		if (_isEmpty(items)) {
-			if (_isFunction(loop)) {
-				loop();
-			}
-			return;
-		}
-		if (this.current.active) {
-			following = _following(items, this.current.active, false/*length*/, loop);
-		} else if (loop && (!_isFunction(loop) || loop(0))) {
-			following = _arrFirst(items);
-		}
-		if (following) {
-			return following.setActiveState(true);
-		}
-	}
-
-	/**
-	 * Advances the list's selectedness to a random item.
-	 *
-	 * @return void}Event
-	 */
-	selectRand() {
-	}
-
-	/**
-	 * Advances the list's selectedness to a item.
-	 *
-	 * @return object
-	 */
-	filter() {
-	}
-
-	/**
-	 * Advances the list's selectedness to a item.
-	 *
-	 * @return object
-	 */
-	sort() {
+	last() {
+		return _arrLast(this.items);
 	}
 	
 	/**
-	 * Creates entries from declarations.
+	 * Returns a random item from the collections.
 	 *
-	 * @param object|array			entries
-	 * @param object|function		entryClass
-	 *
-	 * @return object|array
+	 * @return any
 	 */
-	static createEntries(entries, entryClass = Item) {
-		var _entries = _isArray(entries) ? [] : {};
-		_each(entries, (name, entry) => {
-			entry = entry instanceof entryClass ? entry
-				: (_isClass(entryClass) ? new entryClass(entry)
-					: (_isFunction(entryClass) ? entryClass(entry) 
-						: entry));
-			Observer.set(_entries, name, entry);
-		});
-		return _entries;
+	rand() {
+		return _arrRand(this.items);
 	}
+
+	/**
+	 * Returns the middle item(s) in the collections.
+	 *
+	 * @return any
+	 */
+	mid(...args) {
+		return _mid(this.items, ...args);
+	}
+
+	/**
+	 * Returns the item(s) preceding the given item(s).
+	 *
+	 * @param array	...args
+	 *
+	 * @return array|any
+	 */
+	preceding(...args) {
+		return _preceding(this.items, ...args);
+	}
+	
+	/**
+	 * Returns the item(s) following the given item(s).
+	 *
+	 * @param array	...args
+	 *
+	 * @return array|any
+	 */
+	following(...args) {
+		return _following(this.items, ...args);
+	}
+	
+	/**
+	 * Returns the item(s) between the given item(s).
+	 *
+	 * @param array	...args
+	 *
+	 * @return array|any
+	 */
+	between(...args) {
+		return _between(this.items, ...args);
+	}
+};
+
+/**
+ * Sub Array Type
+ */
+class _Array extends Array {
+	first() { return this._source[_arrFirst(this)]; }
+	last() { return this._source[_arrLast(this)]; }
+	rand() { return this._source[_arrRand(this)]; }
+	min() { return this._source[_min(this)]; }
+	max() { return this._source[_max(this)]; }
+	mid(...args) {
+		var mid = _mid(this, ...args);
+		return _isArray(mid) 
+			? mid.map(i => this._source[i])
+			: this._source[mid];
+	}
+	preceding(...args) {
+		var preceding = _preceding(this, ...args);
+		return _isArray(preceding) 
+			? preceding.map(i => this._source[i])
+			: this._source[preceding];
+	}
+	following(...args) {
+		var following = _following(this, ...args);
+		return _isArray(following) 
+			? following.map(i => this._source[i])
+			: this._source[following];
+	}
+	between(...args) {
+		var between = _between(this, ...args);
+		return _isArray(between) 
+			? between.map(i => this._source[i])
+			: this._source[between];
+	}
+	intersect(...args) { return _intersect(this, ...args).map(i => this._source[i]); }
+	difference(...args) { return _difference(this, ...args).map(i => this._source[i]); }
 };

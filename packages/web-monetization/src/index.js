@@ -2,8 +2,8 @@
 /**
  * @imports
  */
-import Observer from '@web-native-js/observer';
-import { detect } from '@onephrase/util/dom/vendor.js';
+import Observer from '@webqit/observer';
+import { getVendor } from '@webqit/browser-pie/src/vendor.js';
 
 /**
  * ---------------------------
@@ -14,7 +14,7 @@ import { detect } from '@onephrase/util/dom/vendor.js';
  * and adds additional functionality.
  */
 			
-export default class WebMonetization {
+export class WebMonetization {
 
 	/**
 	 * Constructs a new WebMonetization instance. Typically,
@@ -133,7 +133,7 @@ export default class WebMonetization {
 	assertSupport(prompt) {
 		if (!window.document.monetization) {
             if (prompt) {
-                var extensionUrl, browserType = detect();
+                var extensionUrl, browserType = getVendor(window);
                 if (browserType.startsWith('ie')) {
                     // Desktop extension
                     extensionUrl = 'https://microsoftedge.microsoft.com/addons/detail/ljionajlbinlfkdnpkloejeoogfgkojm';
@@ -156,22 +156,22 @@ export default class WebMonetization {
         }
         return true;
     }
-            
-	/**
-	 * Static instantiator;
-     * returns singleton instances per paymentPointer.
-	 *
-	 * @param string        paymentPointer
-	 * @param object        params
-	 *
-	 * @return WebMonetization
-	 */
-	static init(paymentPointer, params = {}) {
-        if (!WebMonetization.instances[paymentPointer]) {
-            WebMonetization.instances[paymentPointer] = new WebMonetization(paymentPointer, params);
-        }
-        return WebMonetization.instances[paymentPointer];
+};
+        
+/**
+ * Static instantiator;
+ * returns singleton instances per paymentPointer.
+ *
+ * @param string        paymentPointer
+ * @param object        params
+ *
+ * @return WebMonetization
+ */
+export function init(paymentPointer, params = {}) {
+    if (!WebMonetization.instances[paymentPointer]) {
+        WebMonetization.instances[paymentPointer] = new WebMonetization(paymentPointer, params);
     }
+    return WebMonetization.instances[paymentPointer];
 };
 
 /**

@@ -2,10 +2,10 @@
 /**
  * @imports
  */
-import Observer from '@web-native-js/observer';
-import _each from '@onephrase/util/obj/each.js';
-import _isFunction from '@onephrase/util/js/isFunction.js';
-import _isClass from '@onephrase/util/js/isClass.js';
+import Observer from '@webqit/observer';
+import _each from '@webqit/util/obj/each.js';
+import _isFunction from '@webqit/util/js/isFunction.js';
+import _isClass from '@webqit/util/js/isClass.js';
 import GenericCollection from '../../collection/src/Collection.js';
 import Input from './Input.js';
 

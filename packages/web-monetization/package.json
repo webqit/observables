@@ -1,12 +1,13 @@
 {
-  "name": "@webqit/obsv-form",
-  "title": "Observable Form",
-  "description": "Observable Form.",
+  "name": "@webqit/obsv-webmonetization",
+  "title": "Observable Web Monetization API",
+  "description": "Observable Web Monetization API.",
   "keywords": [
+    "webmonetization",
     "observables",
     "observer"
   ],
-  "homepage": "https://webqit.dev/tooling/observables/form",
+  "homepage": "https://webqit.dev/tooling/observables/webmonetization",
   "version": "0.0.1",
   "license": "MIT",
   "repository": {
@@ -28,7 +29,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@webqit/observable-collection": "^0.0.1",
+    "@webqit/browser-pie": "file:../../../browser-pie",
     "@webqit/observer": "file:../../../observer",
     "@webqit/util": "file:../../util"
   },
@@ -62,7 +63,7 @@
       "githubUsername": "webqit",
       "githubRepository": "observables",
       "githubSlug": "webqit/observables",
-      "npmPackageName": "@webqit/obsv-form"
+      "npmPackageName": "@webqit/obsv-webmonetization"
     }
   },
   "gitHead": "c07d0e094f74d5f7bf2ae97d1db5dca3e9007f89"

@@ -2,9 +2,9 @@
 /**
  * @imports
  */
-import Observer from '@web-native-js/observer';
-import _isEmpty from '@onephrase/util/js/isEmpty.js';
-import _each from '@onephrase/util/obj/each.js';
+import Observer from '@webqit/observer';
+import _isEmpty from '@webqit/util/js/isEmpty.js';
+import _each from '@webqit/util/obj/each.js';
 import Item from '../../collection/src/Item.js';
 
 /**

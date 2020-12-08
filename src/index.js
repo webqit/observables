@@ -2,19 +2,17 @@
 /**
  * @imports
  */
-import Observer from '@web-native-js/observer';
-import WebMonetization from './web-monetization/index.js';
+import * as ClientQuery from '../packages/client-query/src/index.js';
+import * as WebMonetization from '../packages/web-monetization/src/index.js';
 import * as Collection from '../packages/collection/src/index.js';
-import * as Form from './form/index.js';
-import ENV from './ENV.js';
+import * as Form from '../packages/form/src/index.js';
 
 /**
  * @exports
  */
 export {
-	Observer,
-	WebMonetization,
-	Collection,
-	Form,
-	ENV,
+    ClientQuery,
+    WebMonetization,
+    Collection,
+    Form,
 };

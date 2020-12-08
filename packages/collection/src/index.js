@@ -3,7 +3,7 @@
  * @imports
  */
 import Collection from './Collection.js';
-import Item from './Item.js';
+import List from './List.js';
 import Node from './Node.js';
 
 /**
@@ -11,6 +11,6 @@ import Node from './Node.js';
  */
 export {
 	Collection,
-	Item,
+	List,
 	Node,
 };

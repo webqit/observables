@@ -3,8 +3,8 @@
  * @imports
  */
 import { build } from '../../../src/build.js';
-import * as Collection from './index.js';
+import * as ClientQuery from './index.js';
 
 // As globals
 window.WQ = window.WQ || {};
-window.WQ.Obsv = build('Collection', Collection);
+window.WQ.Obsv = build('ClientQuery', ClientQuery);

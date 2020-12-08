@@ -1,21 +1,26 @@
 {
-  "name": "@onephrase/observable-webmonetization",
-  "title": "Observable Web Monetization API",
-  "description": "Observable Web Monetization API.",
+  "name": "@webqit/obsv-client-query",
+  "title": "Observable Client-Query",
+  "description": "An Observable wrapper for window.matchMedia() and the 'web-native/rect-query' API.",
   "keywords": [
-    "webmonetization",
+    "client-query",
+    "media-query",
+    "rect-query",
+    "CSS-client-query",
+    "CSS-media-query",
+    "CSS-rect-query",
     "observables",
     "observer"
   ],
-  "homepage": "https://onephrase.dev/package/observables/webmonetization",
+  "homepage": "https://webqit.dev/tooling/observables/collection",
   "version": "0.0.1",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/onephrase/observables.git"
+    "url": "git+https://github.com/webqit/observables.git"
   },
   "bugs": {
-    "url": "https://github.com/onephrase/observables/issues"
+    "url": "https://github.com/webqit/observables/issues"
   },
   "type": "module",
   "browser": {
@@ -29,8 +34,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@onephrase/util": "^0.5.5",
-    "@web-native-js/observer": "^1.0.7"
+    "@webqit/browser-pie": "file:../../../browser-pie",
+    "@webqit/observer": "file:../../../observer",
+    "@webqit/util": "file:../../../util"
   },
   "devDependencies": {
     "webpack": "^4.41.0",
@@ -59,11 +65,10 @@
     ],
     "config": {
       "patreonUsername": "ox_harris",
-      "githubUsername": "onephrase",
+      "githubUsername": "webqit",
       "githubRepository": "observables",
-      "githubSlug": "onephrase/observables",
-      "npmPackageName": "@onephrase/observable-webmonetization"
+      "githubSlug": "webqit/observables",
+      "npmPackageName": "@webqit/obsv-client-query"
     }
-  },
-  "gitHead": "c07d0e094f74d5f7bf2ae97d1db5dca3e9007f89"
+  }
 }

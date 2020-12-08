@@ -1,20 +1,20 @@
 {
-  "name": "@onephrase/observables",
+  "name": "@webqit/observables",
   "title": "Observables",
-  "description": "A collection of APIs based on @web-native-js/observer",
+  "description": "A collection of APIs based on the 'web-native/observer' API",
   "keywords": [
     "observables",
     "observer"
   ],
-  "homepage": "https://onephrase.dev/package/observables",
+  "homepage": "https://webqit.dev/tooling/observables",
   "version": "0.3.3",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/onephrase/observables.git"
+    "url": "git+https://github.com/webqit/observables.git"
   },
   "bugs": {
-    "url": "https://github.com/onephrase/observables/issues"
+    "url": "https://github.com/webqit/observables/issues"
   },
   "type": "module",
   "browser": {
@@ -44,18 +44,7 @@
     "type": "patreon",
     "url": "https://patreon.com/ox_harris"
   },
-  "badges": {
-    "list": [
-      "npmversion",
-      "npmdownloads",
-      "patreon"
-    ],
-    "config": {
-      "patreonUsername": "ox_harris",
-      "githubUsername": "onephrase",
-      "githubRepository": "observables",
-      "githubSlug": "onephrase/observables",
-      "npmPackageName": "@onephrase/observables"
-    }
+  "dependencies": {
+    "@webqit/util": "file:../util"
   }
 }

@@ -2,127 +2,88 @@
 /**
  * @imports
  */
-import Observer from '@web-native-js/observer';
-import _each from '@onephrase/util/obj/each.js';
-import _isArray from '@onephrase/util/js/isArray.js';
-import _isNull from '@onephrase/util/js/isNull.js';
-import _isNumeric from '@onephrase/util/js/isNumeric.js';
-import _mixin from '@onephrase/util/js/mixin.js';
+import Observer from '@webqit/observer';
 import Collection from './Collection.js';
-import Item from './Item.js';
 
 /**
  * ---------------------------
- * The Route class
+ * The Node class
  * ---------------------------
- *
- * This class represents a given route and manages
- * its sub-route.
  */
 			
-export default class Route extends _mixin(Item, Collection) {
+export default class Node {
 
-	/**
-	 * Constructs a new Route instance.
-	 * Sub-views may also be listed.
-	 *
-	 * Its content could either be static or remote.
-	 *
-	 * @param object				state
-	 * @param object				params
-	 *
-	 * @return void
-	 */
-	constructor(items = {}, params = {}) {
-		params.itemsOffset = 'subroutes';
-		super(items, params);
-		// -----------------------
-		// Observe the Route's route-slot
-		// -----------------------
-		Observer.observe(this, 'active', delta => {
-			if (delta.value === true && this.activeCallback) {
-				this.activeCallback();
-			}
-		});
-		// -----------------------
-		// -----------------------
-		if (this.initCallback) {
-			this.initCallback();
-		}
-	}
+    /**
+     * Constructs a new Node instance.
+     * 
+     * @param Object props
+     * @param Object params
+     * 
+     * @return this
+     */
+    constructor(props = {}, params = {}) {
 
-	/**
-	 * Binds subroutes to a route path slot.
-	 *
-	 * @param int|array			subroutingKeys
-	 *
-	 * @return void
-	 */
+        var propagatedSates = {};
+        const subtreeKey = params.subtreeKey || 'collection';
+        Observer.intercept(this, ['set', 'del'], (e, recieved, next) => {
 
-	route(subroutingKeys = null) {
-		// -------------------------------
-		var subroutingKey, subroutingKeyForward;
-		if (_isArray(subroutingKeys)) {
-			subroutingKey = subroutingKeys.shift();
-			subroutingKeyForward = subroutingKeys;
-		} else {
-			subroutingKey = subroutingKeys;
-			subroutingKeyForward = _isNumeric(subroutingKey) 
-				? parseInt(subroutingKeys) + 1 
-				: null;
-		}
-		// -------------------------------
-		var routerInstance = Router.init();
-		var subroutingKeyType = 'pathmap';
-		if (_isNumeric(subroutingKey)) {
-			subroutingKey = parseInt(subroutingKey);
-			subroutingKeyType = 'pathsplit';
-		}
-		var route = path => {
-			// ---------------------------------
-			if (this.active || this.activating) {
-				var ownPath = [];
-				_each(path, (key, val) => {
-					if (key === subroutingKey) {
-						return false;
-					}
-					ownPath.push(val);
-				});
-				Observer.set(this, 'ownPath', ownPath.join('/'));
-			} else {
-				Observer.del(this, 'ownPath');
-			}
-			// ---------------------------------
-			var subroutingKeyVal = path[subroutingKey];
-			if ((this.active || this.activating) && this.subroutes && subroutingKeyVal) {
-				if (this.subroutes[subroutingKeyVal]) {
-					if (!this.subroutes[subroutingKeyVal].active && !this.subroutes[subroutingKeyVal].activating) {
-						return this.subroutes[subroutingKeyVal].setActiveState(true);
-					}
-				} else if (!_isNull(subroutingKeys)) {
-					throw new Error('404: ' + subroutingKeyVal, this.subroutingKey);
-				}
-			} else if (this.current.active) {
-				return this.current.active.setActiveState(false);
-			}
-			// ---------------------------------
-		};
-		route(routerInstance[subroutingKeyType]);
-		Observer.observe(routerInstance, subroutingKeyType, delta => route(delta.value));
-		// -------------------------------
-		this.getItemsArray().forEach(route => route.route(subroutingKeyForward));
+            if (e.name === subtreeKey) {
 
-	}
+                if (e.type === 'set') {
+                    if (!(e.value instanceof Collection)) {
+                        throw new Error('Subtrees must be instances of Collection.');
+                    }
 
-	/**
-	 * Creates Routes from declarations.
-	 *
-	 * @param object|array			routes
-	 * @param object|function		routeClass
-	 *
-	 * @return object|array
-	 */
-	static createRoutes(routes, routeClass = Route) {
-		return super.createEntries(routes, routeClass);
-	}
+                    var newStates = {};
+                    Object.keys(e.value.state).forEach(state => {
+                        newStates[state] = e.value.state[state].length / e.value.items.length;
+                        // This state should be unset on sutree removal
+                        propagatedSates[state] = true;
+                    });
+                    if (e.isUpdate) {
+                        Object.keys(e.oldValue.state).forEach(state => {
+                            if (!(state in newStates)) {
+                                newStates[state] = 0;
+                            }
+                        });
+                    }
+                    Observer.set(this, newStates);
+
+                } else if (e.type === 'del') {
+
+                    var oldStates = {};
+                    Object.keys(e.oldValue.state).forEach(state => {
+                        if (propagatedSates[state] && e.oldValue.state[state].length > 0) {
+                            oldStates[state] = 0;
+                        }
+                    });
+                    Observer.set(this, oldStates);
+
+                }
+
+            } else {
+
+                // This state should NOT be unset on sutree removal
+                propagatedSates[e.name] = false;
+
+            }
+
+            return next();
+
+        }, {tags: [this, 'self-interception']});
+
+        // ------------------
+
+        Observer.observe(this, [subtreeKey, 'state', '', 'length'], delta => {
+            var [ , , stateName ] = delta.path;
+            if (delta.value > 0) {
+                Observer.set(this, stateName, delta.value / this[subtreeKey].items.length);
+                propagatedSates[stateName] = true;
+            } else if (propagatedSates[stateName]) {
+                Observer.set(this, stateName, 0);
+            }
+        });
+
+        Observer.set(this, props);
+    }
 };
