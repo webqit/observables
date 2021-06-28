@@ -2,9 +2,9 @@
 /**
  * @imports
  */
+import Observer from '@webqit/observer';
 import Collection from './Collection.js';
 import List from './List.js';
-import Node from './Node.js';
 
 /**
  * @exports
@@ -12,5 +12,5 @@ import Node from './Node.js';
 export {
 	Collection,
 	List,
-	Node,
-};
+	Observer,
+}

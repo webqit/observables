@@ -4,6 +4,7 @@
  */
 import Observer from '@webqit/observer';
 import Collection from './Collection.js';
+import _isArray from '@webqit/util/js/isArray.js';
 
 /**
  * ---------------------------
@@ -12,6 +13,15 @@ import Collection from './Collection.js';
  */
 			
 export default class List extends Collection {
+
+    static createTree(entries, subtree = null, params = {}) {
+        return new this(entries.map(entry => {
+            if (subtree && _isArray(entry[subtree])) {
+                entry[subtree] = this.createTree(entry[subtree], subtree, params);
+            }
+            return entry;
+        }), params);
+    }
 
     /**
      * Intercepts stateSet() operation.
