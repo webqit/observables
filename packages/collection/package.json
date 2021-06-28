@@ -7,7 +7,7 @@
     "observer"
   ],
   "homepage": "https://webqit.dev/tooling/observables/collection",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -31,8 +31,8 @@
     "access": "public"
   },
   "dependencies": {
-    "@webqit/observer": "file:../../../observer",
-    "@webqit/util": "file:../../../util"
+    "@webqit/observer": "^1.4.4",
+    "@webqit/util": "^0.7.1-0"
   },
   "devDependencies": {
     "webpack": "^4.41.0",
@@ -66,6 +66,5 @@
       "githubSlug": "webqit/observables",
       "npmPackageName": "@webqit/obsv-collection"
     }
-  },
-  "gitHead": "c07d0e094f74d5f7bf2ae97d1db5dca3e9007f89"
+  }
 }
