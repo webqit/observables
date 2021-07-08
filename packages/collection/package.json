@@ -7,7 +7,7 @@
     "observer"
   ],
   "homepage": "https://webqit.dev/tooling/observables/collection",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -27,11 +27,8 @@
     "postversion": "npm publish",
     "postpublish": "git push && git push --tags"
   },
-  "publishConfig": {
-    "access": "public"
-  },
   "dependencies": {
-    "@webqit/observer": "^1.4.4",
+    "@webqit/observer": "^1.4.5",
     "@webqit/util": "^0.7.1-0"
   },
   "devDependencies": {
