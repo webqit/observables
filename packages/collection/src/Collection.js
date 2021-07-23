@@ -89,7 +89,7 @@ export default class Collection {
 		// ----------------
 		// Observe all item entry/exit
 		// ----------------
-		Observer.intercept(this.items, ['set', 'del'], (e, recieved, next) => {
+		Observer.intercept(this.items, ['set', 'deleteProperty'], (e, recieved, next) => {
 			if (e.name === 'length') {
 				return next();
 			}
@@ -141,9 +141,9 @@ export default class Collection {
 				// Start watching new entry
 				// -------------------
 
-				Observer.intercept(e.value, ['set', 'del'], (e2, recieved, next) => {
+				Observer.intercept(e.value, ['set', 'deleteProperty'], (e2, recieved, next) => {
 					var shouldAdd = this.params.boolishStateTest ? e2.value : e2.type === 'set';
-					var shouldRemove = this.params.boolishStateTest ? !e2.value : e2.type === 'del';
+					var shouldRemove = this.params.boolishStateTest ? !e2.value : e2.type === 'deleteProperty';
 					if (shouldAdd) {
 						stateAdd(e2.name, e.name);
 					} else if (shouldRemove) {
@@ -160,13 +160,13 @@ export default class Collection {
 					// this.items.unshift() would otherwise have relocated it.
 					// -------------------
 					if (!this.items.includes(e.oldValue)) {
-						Observer.unintercept(e.oldValue, ['set', 'del'], null, {tags: [this, 'state-change-interception']});
+						Observer.unintercept(e.oldValue, ['set', 'deleteProperty'], null, {tags: [this, 'state-change-interception']});
 					}
 				}
 
-			} else if (e.type === 'del') {
+			} else if (e.type === 'deleteProperty') {
 				// -------------------
-				Observer.unintercept(e.oldValue, ['set', 'del'], null, {tags: [this, 'state-change-interception']});
+				Observer.unintercept(e.oldValue, ['set', 'deleteProperty'], null, {tags: [this, 'state-change-interception']});
 				// -------------------
 				Object.keys(e.oldValue || {}).forEach(state => {
 					stateRemove(state, e.name);
