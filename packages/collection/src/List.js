@@ -14,13 +14,13 @@ import _isArray from '@webqit/util/js/isArray.js';
 			
 export default class List extends Collection {
 
-    static createTree(entries, subtree = null, params = {}) {
-        return new this(entries.map(entry => {
+    static createTree(entries, subtree = null) {
+        return new this(...entries.map(entry => {
             if (subtree && _isArray(entry[subtree])) {
-                entry[subtree] = this.createTree(entry[subtree], subtree, params);
+                entry[subtree] = this.createTree(entry[subtree], subtree);
             }
             return entry;
-        }), params);
+        }));
     }
 
     /**

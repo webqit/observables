@@ -7,7 +7,7 @@
     "observer"
   ],
   "homepage": "https://webqit.dev/tooling/observables/collection",
-  "version": "0.0.13",
+  "version": "0.0.15",
   "license": "MIT",
   "repository": {
     "type": "git",
