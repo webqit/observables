@@ -28,7 +28,7 @@
     "postpublish": "git push && git push --tags"
   },
   "dependencies": {
-    "@webqit/observer": "^1.7.4",
+    "@webqit/observer": "^1.7.5",
     "@webqit/util": "^0.8.7"
   },
   "devDependencies": {

@@ -5,6 +5,7 @@
 import Observer from '@webqit/observer';
 import _isArray from '@webqit/util/js/isArray.js';
 import _isObject from '@webqit/util/js/isObject.js';
+import _isTypeObject from '@webqit/util/js/isTypeObject.js';
 import _isNumeric from '@webqit/util/js/isNumeric.js';
 import _arrFirst from '@webqit/util/arr/first.js';
 import _arrLast from '@webqit/util/arr/last.js';
@@ -24,7 +25,7 @@ import _difference from '@webqit/util/arr/difference.js';
  * ---------------------------
  */
 			
-export default class Collection {
+export default class Collection extends Array {
 
 	/**
 	 * Instantiates a new collection.
@@ -34,24 +35,36 @@ export default class Collection {
 	 *
 	 * @return void
 	 */
-	constructor(items = [], params = {}) {
-		if (!_isArray(items)) {
-			throw new Error('"items" must be an array.');
+	constructor(...items) {
+		// ----------------
+		// Input normalizer
+		// ----------------
+		if (items.length === 1 && typeof items[0] === 'number') {
+			const _items = [];
+			for (let i = 0; i < items[0]; i ++) {
+				_items.push({});
+			}
+			items = _items;
 		}
-		if (!_isObject(params)) {
-			throw new Error('"params" must be an object.');
+		// ----------------
+		// Items validation
+		// ----------------
+		if (items.some(item => !_isTypeObject(item))) {
+			throw new Error('Items must each be an object or array.');
 		}
-		if (params.itemStates && !_isArray(params.itemStates)) {
+		super();
+		// ----------------
+		// Params validation
+		// ----------------
+		if (this.params.itemStates && !_isArray(this.params.itemStates)) {
 			throw new Error('"params.itemStates" must be an array.');
 		}
-		Observer.set(this, 'items', []);
-		Observer.set(this, 'state', {});
-		Observer.set(this, 'now', {});
-		Observer.set(this, 'prev', {});
-		this.params = params;
 		// ----------------
-		// Adder/Remover
+		// States and observers
 		// ----------------
+		Observer.defineProperty(this, 'state', { value: {} });
+		Observer.defineProperty(this, 'now', { value: {} });
+		Observer.defineProperty(this, 'prev', { value: {} });
 		const stateAdd = (name, key) => {
 			if (this.params.itemStates && !this.params.itemStates.includes(name)) {
 				return;
@@ -59,7 +72,7 @@ export default class Collection {
 			if (!this.state[name]) {
 				var _array = new _Array();
 				// The "_source" object should not be auto observed
-				Object.defineProperty(_array, '_source', {value: this.items, enumerable: false});
+				Object.defineProperty(_array, '_source', { value: this, enumerable: false });
 				Observer.set(this.state, name, _array);
 			}
 			if (!this.state[name].includes(key)) {
@@ -89,7 +102,7 @@ export default class Collection {
 		// ----------------
 		// Observe all item entry/exit
 		// ----------------
-		Observer.intercept(this.items, ['set', 'deleteProperty'], (e, recieved, next) => {
+		Observer.intercept(this, ['set', 'deleteProperty'], (e, recieved, next) => {
 			if (e.name === 'length') {
 				return next();
 			}
@@ -115,7 +128,7 @@ export default class Collection {
 				});
 				if (e.isUpdate) {
 					// -------------------
-					// Something like this.items.unshift() can scatter indexes,
+					// Something like this.unshift() can scatter indexes,
 					// or a certain item can just be updated in-place
 					// Update state indexes
 					inactiveStates = _difference(Object.keys(e.oldValue), activesStates);
@@ -157,9 +170,9 @@ export default class Collection {
 				if (e.isUpdate) {
 					// -------------------
 					// Only unset if the item was discarded.
-					// this.items.unshift() would otherwise have relocated it.
+					// this.unshift() would otherwise have relocated it.
 					// -------------------
-					if (!this.items.includes(e.oldValue)) {
+					if (!this.includes(e.oldValue)) {
 						Observer.unintercept(e.oldValue, ['set', 'deleteProperty'], null, {tags: [this, 'state-change-interception']});
 					}
 				}
@@ -175,7 +188,16 @@ export default class Collection {
 			return next();
 		});
 		// Fill collection
-		this.push(...items);
+		this.proxy().push(...items);
+	}
+
+	/**
+	 * The read-only parameters for the instance.
+	 *
+	 * @return Object
+	 */
+	get params() {
+		return {};
 	}
 
 	/**
@@ -190,29 +212,7 @@ export default class Collection {
 	 * @return Proxy
 	 */
 	proxy() {
-		return Observer.proxy(this.items);
-	}
-
-	/**
-	 * Adds items to the collections.
-	 *
-	 * @param array ...items
-	 *
-	 * @return void
-	 */
-	push(...items) {
-		Observer.proxy(this.items).push(...items);
-	}
-
-	/**
-	 * Adds items to the collections.
-	 *
-	 * @param array ...items
-	 *
-	 * @return void
-	 */
-	unshift(...items) {
-		Observer.proxy(this.items).unshift(...items);
+		return Observer.proxy(this);
 	}
 
 	/**
@@ -239,7 +239,7 @@ export default class Collection {
 				return [key];
 			}
 			// Empty buffer
-			Observer.proxy(this.items).splice(buffer[0], buffer.length);
+			Observer.proxy(this).splice(buffer[0], buffer.length);
 			return [];
 		}, []);
 	}
@@ -256,7 +256,7 @@ export default class Collection {
 	 * @return any
 	 */
 	first() {
-		return _arrFirst(this.items);
+		return _arrFirst(this);
 	}
 	
 	/**
@@ -265,7 +265,7 @@ export default class Collection {
 	 * @return any
 	 */
 	last() {
-		return _arrLast(this.items);
+		return _arrLast(this);
 	}
 	
 	/**
@@ -274,7 +274,7 @@ export default class Collection {
 	 * @return any
 	 */
 	rand() {
-		return _arrRand(this.items);
+		return _arrRand(this);
 	}
 
 	/**
@@ -283,7 +283,7 @@ export default class Collection {
 	 * @return any
 	 */
 	mid(...args) {
-		return _mid(this.items, ...args);
+		return _mid(this, ...args);
 	}
 
 	/**
@@ -294,7 +294,7 @@ export default class Collection {
 	 * @return array|any
 	 */
 	preceding(...args) {
-		return _preceding(this.items, ...args);
+		return _preceding(this, ...args);
 	}
 	
 	/**
@@ -305,7 +305,7 @@ export default class Collection {
 	 * @return array|any
 	 */
 	following(...args) {
-		return _following(this.items, ...args);
+		return _following(this, ...args);
 	}
 	
 	/**
@@ -316,7 +316,7 @@ export default class Collection {
 	 * @return array|any
 	 */
 	between(...args) {
-		return _between(this.items, ...args);
+		return _between(this, ...args);
 	}
 };
 
